@@ -1,6 +1,6 @@
 {
-  "name": "nodejs-basic-bangla",
-  "description": "সহজ বাংলায় Node.js টিউটোরিয়াল সিরিজ Powered by Learn with Sumit.",
+  "name": "uptime-monitoring-api",
+  "description": "A RESTful API to monitor up or down time of user defined links",
   "version": "1.0.0",
   "main": "index.js",
   "devDependencies": {
