@@ -10,7 +10,6 @@ const handler = {}
 
 // Function that handles /sample route
 handler.sampleHandler = (reqObj, callback) => {
-  console.log(reqObj)
   callback(200, { message: 'This is a sample route' })
 }
 

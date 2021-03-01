@@ -10,7 +10,6 @@ const handler = {}
 
 // Function that handles undefined routes
 handler.notFoundHandler = (reqObj, callback) => {
-  console.log(reqObj)
   callback(404, { message: 'Not Found' })
 }
 

@@ -6,6 +6,7 @@
  */
 
 // Dependencies
+const { StringDecoder } = require('string_decoder')
 const url = require('url')
 const routes = require('../routes')
 const { sampleHandler } = require('../handlers/routeHandlers/sampleHandler')
@@ -26,14 +27,27 @@ helper.handleReqRes = (req, res) => {
     pathname,
     trimmedPath,
   }
-  const chosenRoute = routes[trimmedPath] !== undefined ? routes[trimmedPath] : notFoundHandler
-  console.log(chosenRoute)
+  const chosenRoute =
+    routes[trimmedPath] !== undefined ? routes[trimmedPath] : notFoundHandler
   chosenRoute(reqObj, (statusCode, payload) => {
     const currentStatusCode = typeof statusCode === 'number' ? statusCode : 500
     const currentPayload = typeof payload === 'object' ? payload : {}
     const currentPayloadStr = JSON.stringify(currentPayload)
     res.writeHead(currentStatusCode)
     res.end(currentPayloadStr)
+  })
+
+  const decoder = new StringDecoder('utf8')
+  let fullData = ''
+
+  req.on('data', (buffer) => {
+    fullData += decoder.write(buffer)
+  })
+
+  req.on('end', () => {
+    decoder.end(fullData)
+    console.log(fullData)
+    console.log('Finished')
   })
 }
 

@@ -6,7 +6,6 @@
  */
 
 /**
- * Implement env variables
  * CRUD file operation
  */
 
@@ -21,7 +20,7 @@ const app = {}
 // Create server
 app.createServer = () => {
   const server = http.createServer(handleReqRes)
-  server.listen(environment.port.port, () => {
+  server.listen(environment.port, () => {
     console.log(`Listening on port ${environment.port}`)
   })
 }

@@ -10,7 +10,7 @@ const environments = {}
 
 environments.staging = {
   envName: 'staging',
-  port: 3000,
+  port: 3001,
 }
 
 environments.production = {
