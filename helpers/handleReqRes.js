@@ -27,16 +27,8 @@ helper.handleReqRes = (req, res) => {
     pathname,
     trimmedPath,
   }
-  const chosenRoute =
+  const chosenHandler =
     routes[trimmedPath] !== undefined ? routes[trimmedPath] : notFoundHandler
-  chosenRoute(reqObj, (statusCode, payload) => {
-    const currentStatusCode = typeof statusCode === 'number' ? statusCode : 500
-    const currentPayload = typeof payload === 'object' ? payload : {}
-    const currentPayloadStr = JSON.stringify(currentPayload)
-    res.writeHead(currentStatusCode)
-    res.end(currentPayloadStr)
-  })
-
   const decoder = new StringDecoder('utf8')
   let fullData = ''
 
@@ -46,8 +38,14 @@ helper.handleReqRes = (req, res) => {
 
   req.on('end', () => {
     decoder.end(fullData)
-    console.log(fullData)
-    console.log('Finished')
+    chosenHandler(reqObj, (statusCode, payload) => {
+      const currentStatusCode =
+        typeof statusCode === 'number' ? statusCode : 500
+      const currentPayload = typeof payload === 'object' ? payload : {}
+      const currentPayloadStr = JSON.stringify(currentPayload)
+      res.writeHead(currentStatusCode)
+      res.end(currentPayloadStr)
+    })
   })
 }
 
