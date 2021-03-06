@@ -28,15 +28,36 @@ handler.userHandler = (reqObj, callback) => {
 
 handler._users = {}
 
-handler._users.get = () => {
-  console.log('get')
+// Retrieve user information
+handler._users.get = (reqObj, callback) => {
+  // Get the phone from request object
+  let { phone } = reqObj.queryObj
+  // Validate phone
+  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : null
+  if (phone) {
+    data.read('users', phone, (readErr, user) => {
+      if (readErr) {
+        callback(500, { Error: 'No such user found' })
+      } else {
+        const userInfo = { ...parseJSON(user) }
+        delete userInfo.password
+        delete userInfo.tosAgreement
+        callback(200, userInfo)
+      }
+    })
+  } else {
+    callback(400, { Error: 'There is an error in your request' })
+  }
 }
 
+// Create new user
 handler._users.post = (reqObj, callback) => {
   // Parse reqObj.body and convert it into JSON data
   const parsedBody = parseJSON(reqObj.body)
+
   // Destructure the JSON
   let { firstName, lastName, phone, password, tosAgreement } = parsedBody
+
   // Validate fields
   firstName = typeof firstName === 'string' && firstName.trim().length > 0 ? firstName : null
   lastName = typeof lastName === 'string' && lastName.trim().length > 0 ? lastName : null
@@ -68,12 +89,82 @@ handler._users.post = (reqObj, callback) => {
   }
 }
 
-handler._users.put = () => {
-  console.log('put')
+// Replace user information
+handler._users.put = (reqObj, callback) => {
+  // Parse reqObj.body and convert it into JSON data
+  const parsedBody = parseJSON(reqObj.body)
+
+  // Destructure the JSON
+  let { firstName, lastName, phone, password, tosAgreement } = parsedBody
+
+  // Validate fields
+  firstName = typeof firstName === 'string' && firstName.trim().length > 0 ? firstName : null
+  lastName = typeof lastName === 'string' && lastName.trim().length > 0 ? lastName : null
+  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : null
+  password = typeof password === 'string' && password.trim().length > 0 ? password : null
+  tosAgreement = typeof tosAgreement === 'boolean' && tosAgreement ? tosAgreement : false
+
+  if (phone) {
+    if (firstName || lastName || password) {
+      // Read from file
+      data.read('users', phone, (readErr, user) => {
+        if (readErr) {
+          callback(500, { Error: 'Server Error' })
+        } else {
+          // Update data
+          const userObj = { ...parseJSON(user) }
+          if (firstName) {
+            userObj.firstName = firstName
+          }
+          if (lastName) {
+            userObj.lastName = lastName
+          }
+          if (password) {
+            userObj.password = createHash(password)
+          }
+          // Write data
+          data.update('users', phone, userObj, (updateErr) => {
+            if (updateErr) {
+              callback(500, { Error: 'Can not update user' })
+            } else {
+              callback(200, { Message: 'User updated' })
+            }
+          })
+        }
+      })
+    } else {
+      callback(400, { Error: 'There is a problem in your request' })
+    }
+  } else {
+    callback(400, { Error: 'There is a problem in your request' })
+  }
 }
 
-handler._users.delete = () => {
-  console.log('delete')
+// Remove user
+handler._users.delete = (reqObj, callback) => {
+  // Get the phone from request object
+  let { phone } = reqObj.queryObj
+  // Validate phone
+  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : null
+  if (phone) {
+    // Read user info
+    data.read('users', phone, (readErr) => {
+      if (!readErr) {
+        // Delete file
+        data.delete('users', phone, (deleteErr) => {
+          if (deleteErr) {
+            callback(500, { Error: 'Can not delete user' })
+          } else {
+            callback(200, { Message: 'User deleted' })
+          }
+        })
+      } else {
+        callback(500, { Error: 'Delete error. User does not exists!' })
+      }
+    })
+  } else {
+    callback(400, { Error: 'There is an error in your request.' })
+  }
 }
 
 // Export Module
