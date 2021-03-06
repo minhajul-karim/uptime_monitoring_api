@@ -10,6 +10,7 @@ const { StringDecoder } = require('string_decoder')
 const url = require('url')
 const routes = require('../routes')
 const { sampleHandler } = require('../handlers/routeHandlers/sampleHandler')
+const { userHandler } = require('../handlers/routeHandlers/userHandler')
 const { notFoundHandler } = require('../handlers/routeHandlers/notFoundHandler')
 
 // Helper object, module scaffolding
@@ -21,11 +22,13 @@ helper.handleReqRes = (req, res) => {
   const queryObj = parsedUrl.query
   const { pathname } = parsedUrl
   const trimmedPath = pathname.replace(/^\/+|\/+$/g, '')
+  const method = req.method.toLowerCase()
   const reqObj = {
     parsedUrl,
     queryObj,
     pathname,
     trimmedPath,
+    method,
   }
   const chosenHandler =
     routes[trimmedPath] !== undefined ? routes[trimmedPath] : notFoundHandler
@@ -37,7 +40,8 @@ helper.handleReqRes = (req, res) => {
   })
 
   req.on('end', () => {
-    decoder.end(fullData)
+    const body = decoder.end(fullData)
+    reqObj.body = body
     chosenHandler(reqObj, (statusCode, payload) => {
       const currentStatusCode =
         typeof statusCode === 'number' ? statusCode : 500
