@@ -30,8 +30,8 @@ helper.handleReqRes = (req, res) => {
     trimmedPath,
     method,
   }
-  const chosenHandler =
-    routes[trimmedPath] !== undefined ? routes[trimmedPath] : notFoundHandler
+
+  const chosenHandler = routes[trimmedPath] !== undefined ? routes[trimmedPath] : notFoundHandler
   const decoder = new StringDecoder('utf8')
   let fullData = ''
 
@@ -43,8 +43,7 @@ helper.handleReqRes = (req, res) => {
     const body = decoder.end(fullData)
     reqObj.body = body
     chosenHandler(reqObj, (statusCode, payload) => {
-      const currentStatusCode =
-        typeof statusCode === 'number' ? statusCode : 500
+      const currentStatusCode = typeof statusCode === 'number' ? statusCode : 500
       const currentPayload = typeof payload === 'object' ? payload : {}
       const currentPayloadStr = JSON.stringify(currentPayload)
       res.writeHead(currentStatusCode)

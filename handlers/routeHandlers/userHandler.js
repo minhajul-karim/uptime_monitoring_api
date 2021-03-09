@@ -28,6 +28,7 @@ handler.userHandler = (reqObj, callback) => {
 
 handler._users = {}
 
+// @TODO: Authentication
 // Retrieve user information
 handler._users.get = (reqObj, callback) => {
   // Get the phone from request object
@@ -50,6 +51,7 @@ handler._users.get = (reqObj, callback) => {
   }
 }
 
+// @TODO: Authentication
 // Create new user
 handler._users.post = (reqObj, callback) => {
   // Parse reqObj.body and convert it into JSON data
@@ -89,6 +91,7 @@ handler._users.post = (reqObj, callback) => {
   }
 }
 
+// @TODO: Authentication
 // Replace user information
 handler._users.put = (reqObj, callback) => {
   // Parse reqObj.body and convert it into JSON data
@@ -140,6 +143,7 @@ handler._users.put = (reqObj, callback) => {
   }
 }
 
+// @TODO: Authentication
 // Remove user
 handler._users.delete = (reqObj, callback) => {
   // Get the phone from request object

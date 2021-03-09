@@ -23,8 +23,19 @@ utilities.parseJSON = (data) => {
   return output
 }
 
+// Function that creates a hash out of a string
 utilities.createHash = (str) =>
   crypto.createHmac('sha256', currentEnv.secretKey).update(str).digest('hex')
+
+// Function that creates a random string of given length
+utilities.createRandomString = (length) => {
+  const allPossibleChars = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  let randomStr = ''
+  for (let i = 0; i < length; i += 1) {
+    randomStr += allPossibleChars.charAt(Math.floor(Math.random() * allPossibleChars.length))
+  }
+  return randomStr
+}
 
 // Export module
 module.exports = utilities

@@ -7,14 +7,14 @@
 
 // Dependencies
 const { sampleHandler } = require('./handlers/routeHandlers/sampleHandler')
-const { notFoundHandler } = require('./handlers/routeHandlers/notFoundHandler')
 const { userHandler } = require('./handlers/routeHandlers/userHandler')
+const { tokenHandler } = require('./handlers/routeHandlers/tokenHandler')
 
 // Routes object, module scaffolding
 const routes = {
   sample: sampleHandler,
   user: userHandler,
-  notFound: notFoundHandler,
+  token: tokenHandler,
 }
 
 // Export module

@@ -10,7 +10,7 @@ const environments = {}
 
 environments.staging = {
   envName: 'staging',
-  port: 3001,
+  port: 3000,
   secretKey: 'baa baa black sheep have you any wool?',
 }
 
