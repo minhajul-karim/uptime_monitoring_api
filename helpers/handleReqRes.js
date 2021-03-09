@@ -8,6 +8,7 @@
 // Dependencies
 const { StringDecoder } = require('string_decoder')
 const url = require('url')
+const { parse } = require('path')
 const routes = require('../routes')
 const { sampleHandler } = require('../handlers/routeHandlers/sampleHandler')
 const { userHandler } = require('../handlers/routeHandlers/userHandler')
@@ -23,12 +24,14 @@ helper.handleReqRes = (req, res) => {
   const { pathname } = parsedUrl
   const trimmedPath = pathname.replace(/^\/+|\/+$/g, '')
   const method = req.method.toLowerCase()
+  const headersObj = req.headers
   const reqObj = {
     parsedUrl,
     queryObj,
     pathname,
     trimmedPath,
     method,
+    headersObj,
   }
 
   const chosenHandler = routes[trimmedPath] !== undefined ? routes[trimmedPath] : notFoundHandler

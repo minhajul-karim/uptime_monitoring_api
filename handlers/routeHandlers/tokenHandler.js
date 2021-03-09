@@ -122,11 +122,11 @@ handler._tokens.put = (reqObj, callback) => {
           }
         })
       } else {
-        callback(400, { Error: '1. There is a problem in your request' })
+        callback(400, { Error: 'There is a problem in your request' })
       }
     })
   } else {
-    callback(400, { Error: '2. There is a problem in your request' })
+    callback(400, { Error: 'There is a problem in your request' })
   }
 }
 
@@ -154,6 +154,34 @@ handler._tokens.delete = (reqObj, callback) => {
     })
   } else {
     callback(400, { Error: 'There is an error in your request.' })
+  }
+}
+
+// Verify token
+handler._tokens.verify = (reqObj, phone, callback) => {
+  let { token } = reqObj.headersObj
+
+  // Validate fields format
+  token = typeof token === 'string' && token.trim().length === 20 ? token : null
+
+  if (token) {
+    // Read token file
+    data.read('tokens', token, (readErr, tokenDataStr) => {
+      // When token exists, compare phone
+      if (!readErr && tokenDataStr) {
+        const tokenData = parseJSON(tokenDataStr)
+        // When phone matches with token's phone and token is still alive
+        if (tokenData.phone === phone && tokenData.expireTime > Date.now()) {
+          callback(true)
+        } else {
+          callback(false)
+        }
+      } else {
+        callback(false)
+      }
+    })
+  } else {
+    callback(false)
   }
 }
 

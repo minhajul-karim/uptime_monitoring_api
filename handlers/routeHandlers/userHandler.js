@@ -8,6 +8,7 @@
 // Dependencies
 const data = require('../../lib/data')
 const { parseJSON, createHash } = require('../../helpers/utilities')
+const tokenHandler = require('./tokenHandler')
 
 // Handler module - module scaffolding
 const handler = {}
@@ -28,7 +29,6 @@ handler.userHandler = (reqObj, callback) => {
 
 handler._users = {}
 
-// @TODO: Authentication
 // Retrieve user information
 handler._users.get = (reqObj, callback) => {
   // Get the phone from request object
@@ -36,14 +36,22 @@ handler._users.get = (reqObj, callback) => {
   // Validate phone
   phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : null
   if (phone) {
-    data.read('users', phone, (readErr, user) => {
-      if (readErr) {
-        callback(500, { Error: 'No such user found' })
+    // Verify token
+    tokenHandler._tokens.verify(reqObj, phone, (isVerified) => {
+      if (isVerified) {
+        // Send user data
+        data.read('users', phone, (readErr, user) => {
+          if (readErr) {
+            callback(500, { Error: 'No such user found' })
+          } else {
+            const userInfo = { ...parseJSON(user) }
+            delete userInfo.password
+            delete userInfo.tosAgreement
+            callback(200, userInfo)
+          }
+        })
       } else {
-        const userInfo = { ...parseJSON(user) }
-        delete userInfo.password
-        delete userInfo.tosAgreement
-        callback(200, userInfo)
+        callback(403, { Error: 'Authorization Failure' })
       }
     })
   } else {
@@ -51,7 +59,6 @@ handler._users.get = (reqObj, callback) => {
   }
 }
 
-// @TODO: Authentication
 // Create new user
 handler._users.post = (reqObj, callback) => {
   // Parse reqObj.body and convert it into JSON data
@@ -91,7 +98,6 @@ handler._users.post = (reqObj, callback) => {
   }
 }
 
-// @TODO: Authentication
 // Replace user information
 handler._users.put = (reqObj, callback) => {
   // Parse reqObj.body and convert it into JSON data
@@ -108,42 +114,48 @@ handler._users.put = (reqObj, callback) => {
   tosAgreement = typeof tosAgreement === 'boolean' && tosAgreement ? tosAgreement : false
 
   if (phone) {
-    if (firstName || lastName || password) {
-      // Read from file
-      data.read('users', phone, (readErr, user) => {
-        if (readErr) {
-          callback(500, { Error: 'Server Error' })
-        } else {
-          // Update data
-          const userObj = { ...parseJSON(user) }
-          if (firstName) {
-            userObj.firstName = firstName
-          }
-          if (lastName) {
-            userObj.lastName = lastName
-          }
-          if (password) {
-            userObj.password = createHash(password)
-          }
-          // Write data
-          data.update('users', phone, userObj, (updateErr) => {
-            if (updateErr) {
-              callback(500, { Error: 'Can not update user' })
+    // Verify token
+    tokenHandler._tokens.verify(reqObj, phone, (isVerified) => {
+      if (isVerified) {
+        if (firstName || lastName || password) {
+          // Read from file
+          data.read('users', phone, (readErr, user) => {
+            if (readErr) {
+              callback(500, { Error: 'Server Error' })
             } else {
-              callback(200, { Message: 'User updated' })
+              // Update data
+              const userObj = { ...parseJSON(user) }
+              if (firstName) {
+                userObj.firstName = firstName
+              }
+              if (lastName) {
+                userObj.lastName = lastName
+              }
+              if (password) {
+                userObj.password = createHash(password)
+              }
+              // Write data
+              data.update('users', phone, userObj, (updateErr) => {
+                if (updateErr) {
+                  callback(500, { Error: 'Can not update user' })
+                } else {
+                  callback(200, { Message: 'User updated' })
+                }
+              })
             }
           })
+        } else {
+          callback(400, { Error: 'There is a problem in your request' })
         }
-      })
-    } else {
-      callback(400, { Error: 'There is a problem in your request' })
-    }
+      } else {
+        callback(403, { Error: 'Authorization Failure' })
+      }
+    })
   } else {
     callback(400, { Error: 'There is a problem in your request' })
   }
 }
 
-// @TODO: Authentication
 // Remove user
 handler._users.delete = (reqObj, callback) => {
   // Get the phone from request object
@@ -151,19 +163,26 @@ handler._users.delete = (reqObj, callback) => {
   // Validate phone
   phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : null
   if (phone) {
-    // Read user info
-    data.read('users', phone, (readErr) => {
-      if (!readErr) {
-        // Delete file
-        data.delete('users', phone, (deleteErr) => {
-          if (deleteErr) {
-            callback(500, { Error: 'Can not delete user' })
+    // Verify token
+    tokenHandler._tokens.verify(reqObj, phone, (isVerified) => {
+      if (isVerified) {
+        // Read user info
+        data.read('users', phone, (readErr) => {
+          if (!readErr) {
+            // Delete file
+            data.delete('users', phone, (deleteErr) => {
+              if (deleteErr) {
+                callback(500, { Error: 'Can not delete user' })
+              } else {
+                callback(200, { Message: 'User deleted' })
+              }
+            })
           } else {
-            callback(200, { Message: 'User deleted' })
+            callback(500, { Error: 'Delete error. User does not exists!' })
           }
         })
       } else {
-        callback(500, { Error: 'Delete error. User does not exists!' })
+        callback(403, { Error: 'Authorization Failure' })
       }
     })
   } else {
