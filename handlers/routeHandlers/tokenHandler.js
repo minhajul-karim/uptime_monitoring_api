@@ -45,13 +45,15 @@ handler._tokens.post = (reqObj, callback) => {
     data.read('users', phone, (readErr, userStr) => {
       if (!readErr && userStr) {
         // Check if provided password matches with the existing one
-        if (createHash(password) === parseJSON(userStr).password) {
+        const hashedPassword = createHash(password)
+        if (hashedPassword === parseJSON(userStr).password) {
+          // Token object
           const tokenObj = {
             phone,
             token: createRandomString(20),
             expireTime: Date.now() + 60 * 60 * 1000,
           }
-          // Create token
+          // Store token
           data.create('tokens', tokenObj.token, tokenObj, (createErr) => {
             if (!createErr) {
               callback(200, { Message: 'Token created' })
@@ -72,13 +74,88 @@ handler._tokens.post = (reqObj, callback) => {
 }
 
 // Retrieve token information
-handler._tokens.get = (reqObj, callback) => {}
+handler._tokens.get = (reqObj, callback) => {
+  // Get the id from request object
+  let { id } = reqObj.queryObj
+  // Validate id
+  id = typeof id === 'string' && id.trim().length === 20 ? id : null
+  if (id) {
+    // Read token file
+    data.read('tokens', id, (readErr, tokenData) => {
+      if (readErr) {
+        callback(500, { Error: 'No such token found' })
+      } else {
+        const token = { ...parseJSON(tokenData) }
+        callback(200, token)
+      }
+    })
+  } else {
+    callback(404, { Error: 'No such token found' })
+  }
+}
 
 // Replace token information
-handler._tokens.put = (reqObj, callback) => {}
+handler._tokens.put = (reqObj, callback) => {
+  // Parse reqObj.body and convert it into JSON data
+  const parsedBody = parseJSON(reqObj.body)
+
+  // Destructure the JSON
+  let { id, needToExtend } = parsedBody
+
+  // Validate fields
+  id = typeof id === 'string' && id.trim().length === 20 ? id : null
+  needToExtend = typeof needToExtend === 'boolean' && needToExtend ? needToExtend : false
+
+  if (id && needToExtend) {
+    // Check if such token with given id exists
+    data.read('tokens', id, (readErr, tokenDataStr) => {
+      if (!readErr && tokenDataStr) {
+        // Update token expire time
+        const token = parseJSON(tokenDataStr)
+        token.expireTime = Date.now() + 60 * 60 * 1000
+        // Save updated token
+        data.update('tokens', id, token, (updateErr) => {
+          if (updateErr) {
+            callback(500, { Error: 'Can not update token' })
+          } else {
+            callback(200, { Message: 'Token updated' })
+          }
+        })
+      } else {
+        callback(400, { Error: '1. There is a problem in your request' })
+      }
+    })
+  } else {
+    callback(400, { Error: '2. There is a problem in your request' })
+  }
+}
 
 // Remove token
-handler._tokens.delete = (reqObj, callback) => {}
+handler._tokens.delete = (reqObj, callback) => {
+  // Get the id from request object
+  let { id } = reqObj.queryObj
+  // Validate id
+  id = typeof id === 'string' && id.trim().length === 20 ? id : null
+  if (id) {
+    // Read token
+    data.read('tokens', id, (readErr) => {
+      if (!readErr) {
+        // Delete file
+        data.delete('tokens', id, (deleteErr) => {
+          if (deleteErr) {
+            callback(500, { Error: 'Can not delete token' })
+          } else {
+            callback(200, { Message: 'Token deleted' })
+          }
+        })
+      } else {
+        callback(400, { Error: 'Delete error. Token may not exists!' })
+      }
+    })
+  } else {
+    callback(400, { Error: 'There is an error in your request.' })
+  }
+}
 
 // Export Module
 module.exports = handler
