@@ -13,6 +13,7 @@ const routes = require('../routes')
 const { sampleHandler } = require('../handlers/routeHandlers/sampleHandler')
 const { userHandler } = require('../handlers/routeHandlers/userHandler')
 const { notFoundHandler } = require('../handlers/routeHandlers/notFoundHandler')
+const { checkHandler } = require('../handlers/routeHandlers/checkHandler')
 
 // Helper object, module scaffolding
 const helper = {}
