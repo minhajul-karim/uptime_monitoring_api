@@ -31,13 +31,15 @@ handler._users = {}
 
 // Retrieve user information
 handler._users.get = (reqObj, callback) => {
-  // Get the phone from request object
+  // Get the phone and token from request object
   let { phone } = reqObj.queryObj
-  // Validate phone
-  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : null
+  let { token } = reqObj.headersObj
+  // Validate phone and token
+  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : false
+  token = typeof token === 'string' && token.trim().length === 20 ? token : false
   if (phone) {
     // Verify token
-    tokenHandler._tokens.verify(reqObj, phone, (isVerified) => {
+    tokenHandler._tokens.verify(token, phone, (isVerified) => {
       if (isVerified) {
         // Send user data
         data.read('users', phone, (readErr, user) => {
@@ -68,10 +70,10 @@ handler._users.post = (reqObj, callback) => {
   let { firstName, lastName, phone, password, tosAgreement } = parsedBody
 
   // Validate fields
-  firstName = typeof firstName === 'string' && firstName.trim().length > 0 ? firstName : null
-  lastName = typeof lastName === 'string' && lastName.trim().length > 0 ? lastName : null
-  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : null
-  password = typeof password === 'string' && password.trim().length > 0 ? password : null
+  firstName = typeof firstName === 'string' && firstName.trim().length > 0 ? firstName : false
+  lastName = typeof lastName === 'string' && lastName.trim().length > 0 ? lastName : false
+  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : false
+  password = typeof password === 'string' && password.trim().length > 0 ? password : false
   tosAgreement = typeof tosAgreement === 'boolean' && tosAgreement ? tosAgreement : false
 
   // Create file if validation is successfull
@@ -105,17 +107,19 @@ handler._users.put = (reqObj, callback) => {
 
   // Destructure the JSON
   let { firstName, lastName, phone, password, tosAgreement } = parsedBody
+  let { token } = reqObj.headersObj
 
   // Validate fields
-  firstName = typeof firstName === 'string' && firstName.trim().length > 0 ? firstName : null
-  lastName = typeof lastName === 'string' && lastName.trim().length > 0 ? lastName : null
-  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : null
-  password = typeof password === 'string' && password.trim().length > 0 ? password : null
+  firstName = typeof firstName === 'string' && firstName.trim().length > 0 ? firstName : false
+  lastName = typeof lastName === 'string' && lastName.trim().length > 0 ? lastName : false
+  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : false
+  password = typeof password === 'string' && password.trim().length > 0 ? password : false
   tosAgreement = typeof tosAgreement === 'boolean' && tosAgreement ? tosAgreement : false
+  token = typeof token === 'string' && token.trim().length === 20 ? token : false
 
   if (phone) {
     // Verify token
-    tokenHandler._tokens.verify(reqObj, phone, (isVerified) => {
+    tokenHandler._tokens.verify(token, phone, (isVerified) => {
       if (isVerified) {
         if (firstName || lastName || password) {
           // Read from file
@@ -158,13 +162,15 @@ handler._users.put = (reqObj, callback) => {
 
 // Remove user
 handler._users.delete = (reqObj, callback) => {
-  // Get the phone from request object
+  // Get the phone and token from request object
   let { phone } = reqObj.queryObj
+  let { token } = reqObj.headersObj
   // Validate phone
-  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : null
+  phone = typeof phone === 'string' && phone.trim().length === 11 ? phone : false
+  token = typeof token === 'string' && token.trim().length === 20 ? token : false
   if (phone) {
     // Verify token
-    tokenHandler._tokens.verify(reqObj, phone, (isVerified) => {
+    tokenHandler._tokens.verify(token, phone, (isVerified) => {
       if (isVerified) {
         // Read user info
         data.read('users', phone, (readErr) => {

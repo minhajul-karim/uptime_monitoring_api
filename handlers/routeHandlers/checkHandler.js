@@ -9,7 +9,6 @@
 const data = require('../../lib/data')
 const { parseJSON, createRandomString } = require('../../helpers/utilities')
 const tokenHandler = require('./tokenHandler')
-const { read } = require('../../lib/data')
 
 // Handler module - module scaffolding
 const handler = {}
@@ -64,7 +63,7 @@ handler._checks.post = (reqObj, callback) => {
           const tokenData = parseJSON(tokenDataStr)
           const { phone } = tokenData
           // Verify token
-          tokenHandler._tokens.verify(reqObj, phone, (isVerified) => {
+          tokenHandler._tokens.verify(token, phone, (isVerified) => {
             if (isVerified) {
               const checkId = createRandomString(20)
               const checkObj = {
@@ -122,16 +121,207 @@ handler._checks.post = (reqObj, callback) => {
   }
 }
 
-// Retrieve user information
+// Retrieve check information
 handler._checks.get = (reqObj, callback) => {
-  callback(200, {})
+  // Get the check id from request object
+  let checkId = reqObj.queryObj.id
+  // Validate check id
+  checkId = typeof checkId === 'string' && checkId.trim().length === 20 ? checkId : false
+  if (checkId) {
+    // Get and sanitize the token from headers
+    let { token } = reqObj.headersObj
+    token = typeof token === 'string' && token.trim().length === 20 ? token : false
+    // Verify the token
+    if (token) {
+      // Get phone number from token
+      data.read('tokens', token, (tokenReadErr, tokenDataStr) => {
+        if (!tokenReadErr && tokenDataStr) {
+          const tokenData = parseJSON(tokenDataStr)
+          const { phone } = tokenData
+          // Verify token
+          tokenHandler._tokens.verify(token, phone, (isVerified) => {
+            if (isVerified) {
+              // Send the check obj
+              data.read('checks', checkId, (checkReadErr, checkDataStr) => {
+                if (!checkReadErr && checkDataStr) {
+                  callback(200, parseJSON(checkDataStr))
+                } else {
+                  callback(500, { Error: 'There is a problem in the server!' })
+                }
+              })
+            } else {
+              callback(403, { Error: 'Authorization Failure' })
+            }
+          })
+        } else {
+          callback(400, { Error: 'The token may not exist or valid!' })
+        }
+      })
+    } else {
+      callback(403, { Error: 'Authorization Failure' })
+    }
+  } else {
+    callback(400, { Error: 'There is a problem in your request.' })
+  }
 }
 
 // Replace user information
-handler._checks.put = (reqObj, callback) => {}
+handler._checks.put = (reqObj, callback) => {
+  // Parse reqObj.body and convert it into JSON data
+  const parsedBody = parseJSON(reqObj.body)
+
+  // Sanitize inputs
+  let { id, protocol, url, method, successCodes, timeoutSeconds } = parsedBody
+  id = typeof id === 'string' && id.trim().length === 20 ? id : false
+  protocol = typeof protocol === 'string' && ['http', 'https'].includes(protocol) ? protocol : false
+  url = typeof url === 'string' && url.trim().length > 0 ? url : false
+  method =
+    typeof method === 'string' && ['get', 'post', 'put', 'delete'].includes(method.toLowerCase())
+      ? method
+      : false
+  successCodes =
+    typeof successCodes === 'object' && successCodes instanceof Array ? successCodes : false
+  timeoutSeconds =
+    typeof timeoutSeconds === 'number' &&
+    timeoutSeconds > 0 &&
+    timeoutSeconds < 6 &&
+    timeoutSeconds % 1 === 0
+      ? timeoutSeconds
+      : false
+  if (id) {
+    // Get and sanitize the token from headers
+    let { token } = reqObj.headersObj
+    token = typeof token === 'string' && token.trim().length === 20 ? token : false
+    if (token) {
+      // Get phone number from token
+      data.read('tokens', token, (tokenReadErr, tokenDataStr) => {
+        if (!tokenReadErr && tokenDataStr) {
+          const tokenData = parseJSON(tokenDataStr)
+          const { phone } = tokenData
+          // Verify token
+          tokenHandler._tokens.verify(token, phone, (isVerified) => {
+            if (isVerified) {
+              // Get the check object
+              data.read('checks', id, (readErr, checkDataStr) => {
+                if (!readErr && checkDataStr) {
+                  const checkObj = parseJSON(checkDataStr)
+                  if (protocol || url || method || successCodes || timeoutSeconds) {
+                    if (protocol) {
+                      checkObj.protocol = protocol
+                    }
+                    if (url) {
+                      checkObj.url = url
+                    }
+                    if (method) {
+                      checkObj.method = method
+                    }
+                    if (successCodes) {
+                      checkObj.successCodes = successCodes
+                    }
+                    if (timeoutSeconds) {
+                      checkObj.timeoutSeconds = timeoutSeconds
+                    }
+                    // Save the updated check object
+                    data.update('checks', id, checkObj, (updateErr) => {
+                      if (!updateErr) {
+                        callback(200, { Message: 'Check file updated' })
+                      } else {
+                        callback(500, { Error: 'There is a server side error' })
+                      }
+                    })
+                  } else {
+                    callback(400, {
+                      Error:
+                        'There is a problem in your request. You must define a field that you want to update!',
+                    })
+                  }
+                } else {
+                  callback(400, {
+                    Error: 'There is a problem in your request. The check data may not exists!',
+                  })
+                }
+              })
+            } else {
+              callback(403, { Error: 'Authorization Failure' })
+            }
+          })
+        } else {
+          callback(400, { Error: 'The token may not exist or valid!' })
+        }
+      })
+    } else {
+      callback(403, { Error: 'Authorization Failure' })
+    }
+  } else {
+    callback(400, { Error: 'There is a problem in your request.' })
+  }
+}
 
 // Remove user
-handler._checks.delete = (reqObj, callback) => {}
+handler._checks.delete = (reqObj, callback) => {
+  // Get the check id from request object
+  let checkId = reqObj.queryObj.id
+  // Validate check id
+  checkId = typeof checkId === 'string' && checkId.trim().length === 20 ? checkId : false
+  if (checkId) {
+    // Get and sanitize the token from headers
+    let { token } = reqObj.headersObj
+    token = typeof token === 'string' && token.trim().length === 20 ? token : false
+    // Verify the token
+    if (token) {
+      // Get phone number from token
+      data.read('tokens', token, (tokenReadErr, tokenDataStr) => {
+        if (!tokenReadErr && tokenDataStr) {
+          const tokenData = parseJSON(tokenDataStr)
+          const { phone } = tokenData
+          // Verify token
+          tokenHandler._tokens.verify(token, phone, (isVerified) => {
+            if (isVerified) {
+              // Delete check file
+              data.delete('checks', checkId, (deleteErr) => {
+                if (!deleteErr) {
+                  // Update user file
+                  data.read('users', phone, (readErr, userDataStr) => {
+                    if (!readErr && userDataStr) {
+                      const userObj = parseJSON(userDataStr)
+                      // Add checks property
+                      userObj.checks =
+                        typeof userObj.checks === 'object' && userObj.checks instanceof Array
+                          ? userObj.checks
+                          : []
+                      // Remove check id from userobj
+                      userObj.checks = userObj.checks.filter((check) => check !== checkId)
+                      // Update phone.json
+                      data.update('users', phone, userObj, (updateErr) => {
+                        if (!updateErr) {
+                          callback(200, 'Check deleted')
+                        } else {
+                          callback(500, { Error: 'There is a problem in the server!' })
+                        }
+                      })
+                    } else {
+                      callback(500, { Error: 'There is a problem in the server!' })
+                    }
+                  })
+                } else {
+                  callback(500, { Error: 'There is a problem in the server!' })
+                }
+              })
+            } else {
+              callback(403, { Error: 'Authorization Failure' })
+            }
+          })
+        } else {
+          callback(400, { Error: 'The token may not exist or valid!' })
+        }
+      })
+    } else {
+      callback(403, { Error: 'Authorization Failure' })
+    }
+  } else {
+    callback(400, { Error: 'There is a problem in your request.' })
+  }
+}
 
 // Export Module
 module.exports = handler

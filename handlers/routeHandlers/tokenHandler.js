@@ -158,31 +158,22 @@ handler._tokens.delete = (reqObj, callback) => {
 }
 
 // Verify token
-handler._tokens.verify = (reqObj, phone, callback) => {
-  let { token } = reqObj.headersObj
-
-  // Validate fields format
-  token = typeof token === 'string' && token.trim().length === 20 ? token : null
-
-  if (token) {
-    // Read token file
-    data.read('tokens', token, (readErr, tokenDataStr) => {
-      // When token exists, compare phone
-      if (!readErr && tokenDataStr) {
-        const tokenData = parseJSON(tokenDataStr)
-        // When phone matches with token's phone and token is still alive
-        if (tokenData.phone === phone && tokenData.expireTime > Date.now()) {
-          callback(true)
-        } else {
-          callback(false)
-        }
+handler._tokens.verify = (tokenId, phone, callback) => {
+  // Read token file
+  data.read('tokens', tokenId, (readErr, tokenDataStr) => {
+    // When token exists, compare phone
+    if (!readErr && tokenDataStr) {
+      const tokenData = parseJSON(tokenDataStr)
+      // When phone matches with token's phone and token is still alive
+      if (tokenData.phone === phone && tokenData.expireTime > Date.now()) {
+        callback(true)
       } else {
         callback(false)
       }
-    })
-  } else {
-    callback(false)
-  }
+    } else {
+      callback(false)
+    }
+  })
 }
 
 // Export Module
