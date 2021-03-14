@@ -67,6 +67,7 @@ handler._checks.post = (reqObj, callback) => {
             if (isVerified) {
               const checkId = createRandomString(20)
               const checkObj = {
+                id: checkId,
                 protocol,
                 url,
                 method,
