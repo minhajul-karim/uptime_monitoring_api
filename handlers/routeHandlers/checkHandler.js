@@ -69,6 +69,7 @@ handler._checks.post = (reqObj, callback) => {
               const checkObj = {
                 id: checkId,
                 protocol,
+                phone,
                 url,
                 method,
                 successCodes,

@@ -13,9 +13,9 @@ environments.staging = {
   port: 3000,
   secretKey: 'baa baa black sheep have you any wool?',
   twilio: {
-    fromPhoneNum: '+17247345220',
-    accountSID: 'AC8d9b0686262e220ba23496736742621c',
-    authToken: '758ff8387c5194e885554ea95d0ed2a5',
+    fromPhoneNum: '+15005550006',
+    accountSID: 'ACe4f2a187b44751f5bdaecf83522263b6',
+    authToken: '6950bc0b5c0800d4d68a9a0ac74bad3a',
   },
 }
 
@@ -24,9 +24,9 @@ environments.production = {
   port: 5000,
   secretKey: 'twinkle twinkle little star!',
   twilio: {
-    fromPhoneNum: '+17247345220',
-    accountSID: 'AC8d9b0686262e220ba23496736742621c',
-    authToken: '758ff8387c5194e885554ea95d0ed2a5',
+    fromPhoneNum: '+15005550006',
+    accountSID: 'ACe4f2a187b44751f5bdaecf83522263b6',
+    authToken: '6950bc0b5c0800d4d68a9a0ac74bad3a',
   },
 }
 

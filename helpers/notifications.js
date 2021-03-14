@@ -69,5 +69,9 @@ notifications.sendTwilioSms = (phoneNum, msg, callback) => {
   }
 }
 
+// Send mock sms
+notifications.sendMockSms = (phoneNumber, msg, callback) => {
+  callback(false)
+}
 // Export module
 module.exports = notifications
