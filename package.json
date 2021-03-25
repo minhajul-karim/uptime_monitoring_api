@@ -11,6 +11,9 @@
     "eslint-plugin-prettier": "^3.1.4",
     "prettier": "^2.1.2"
   },
+  "engines": {
+    "node": "15.0.1"
+  },
   "scripts": {
     "start": "NODE_ENV=staging npx nodemon index",
     "production": "NODE_ENV=production npx nodemon index",
@@ -18,13 +21,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/learnwithsumit/nodejs-basic-bangla.git"
+    "url": "git+https://github.com/minhajul-karim/uptime_monitoring_api.git"
   },
   "keywords": [],
-  "author": "Sumit Saha <sumit@learnwithsumit.com>",
+  "author": "Minhajul Karim <minhajul.kaarim@gmail.com>",
   "license": "UNLICENSED",
   "bugs": {
-    "url": "https://github.com/learnwithsumit/nodejs-basic-bangla/issues"
+    "url": "https://github.com/minhajul-karim/uptime_monitoring_api/issues"
   },
-  "homepage": "https://github.com/learnwithsumit/nodejs-basic-bangla#readme"
+  "homepage": "https://github.com/minhajul-karim/uptime_monitoring_api#readme"
 }
